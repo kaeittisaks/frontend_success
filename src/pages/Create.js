@@ -369,75 +369,92 @@ useEffect (()=>{
 
 
 // tag read new
+const [employeeList, setEmployeeList] = useState([]);
+const [selectedEmployee, setSelectedEmployee] = useState('');
+const [downloadLink, setDownloadLink] = useState('');
 
+useEffect(() => {
+  // โหลดรายชื่อพนักงานเมื่อโหลดหน้าเว็บ
+  fetchEmployeeList();
+}, []);
 
-
-const handleSave = () => {
-  const tagRegex = /{{(.*?)}}/g; // regex สำหรับการค้นหาแท็กตัวแปร
-
-  const matches = content.matchAll(tagRegex); // ค้นหาแท็กตัวแปรทั้งหมดในเนื้อหา
-
-  const data = {};
-
-  let updatedContent = content; // เก็บเนื้อหาที่อัปเดตได้รับ
-
-  const matchesArray = Array.from(matches); // แปลง Iterator เป็นอาร์เรย์
-
-  matchesArray.forEach((match) => {
-    const variable = match[1]; // ข้อมูลที่อยู่ในวงเล็บ
-    const value = getDataForVariable(variable); // ตัวแปรแทนที่ด้วยข้อมูลจริงที่คุณต้องการ
-    const regex = new RegExp(`{{${variable}}}`, "g"); // regex สำหรับแทนที่แท็กตัวแปร
-  
-    // แทนที่แท็กตัวแปรในเนื้อหาด้วยข้อมูลจริง
-    updatedContent = updatedContent.replace(regex, value);
-  
-    data[variable] = value; // จัดเก็บข้อมูลในแท็กตัวแปรในอ็อบเจ็กต์ข้อมูล
-  });
-
-  setContent(updatedContent); // อัปเดตเนื้อหาในสถานะของคอมโพเนนต์ React
-
-  // ทำอย่างอื่นกับข้อมูลที่ได้รับเช่นการส่งไปยังเซิร์ฟเวอร์
-  console.log(data);
+const fetchEmployeeList = async () => {
+  try {
+    const response = await fetch('https://jingjo-backend-customer.vercel.app/employee_list');
+    const data = await response.json();
+    setEmployeeList(data);
+  } catch (error) {
+    console.log('Error fetching employee list:', error);
+  }
 };
 
-const getDataForVariable = (variable) => {
-  // ตรวจสอบและคืนค่าข้อมูลที่สอดคล้องกับแท็กตัวแปรที่ใส่เข้ามา
-  if (variable === "fullNameEng") {
-    return "<strong>kaeittisak seedaeng</strong>";
-  }
-  if (variable === "currentAddress") {
-    return "<strong>39/9 หมู่4 ถนนเพชรเกษม แขวงหลักสอง เขตบางแค กรุงเทพฯ 10160</strong>";
-  }
-  if (variable === "personal_id") {
-    return "<strong>1232355676</strong>";
-  }
-  if (variable === "Positon") {
-    return "<strong>dev</strong>";
-  }
-  if (variable === "Contract_Consultant_Name") {
-    return "<strong>Mr. Ma noch</strong>";
-  }
-  if (variable === "Contract_Duration") {
-    return "<strong>12</strong>";
-  }
-  if (variable === "client") {
-    return "<strong>joe</strong>";
-  }
-  if (variable === "Work_address") {
-    return "<strong>39/9 หมู่4 ถนนเพชรเกษม แขวงหลักสอง เขตบางแค กรุงเทพฯ 10160</strong>";
-  }
-  if (variable === "Salary") {
-    return "<strong>30000</strong>";
-  }
-  if (variable === "Agreement_expiration_period") {
-    return "<strong>12</strong>";
-  }
-  if (variable === "Leave_eligibility") {
-    return "<strong>2</strong>";
+
+
+const handleEmployeeChange = async (event) => {
+  console.log("select : ", event.target.value)
+  setSelectedEmployee(event.target.value);
+  try {
+    const response = await fetch(`https://jingjo-backend-customer.vercel.app/employee/${event.target.value}`);
+    const data = await response.json();
+   
+    
+    // let modifiedContent = `fullNameEng : {{fullNameEng}}`;
+    // modifiedContent += `<br/>currentAddress: {{currentAddress}}`;
+    // modifiedContent += `<br/>personal_id : {{personal_id}}`;
+    // modifiedContent += `<br/>Position : {{position}}`;
+    // modifiedContent += `<br/>Agreement_expiration_period : {{Agreement_expiration_period}}`;
+    // modifiedContent += `<br/>Contract_Consultant_Name : {{Contract_Consultant_Name}}`;
+    // modifiedContent += `<br/>Contract_Duration : {{Contract_Duration}}`;
+    // modifiedContent += `<br/>Leave_eligibility : {{Leave_eligibility}}`;
+    // modifiedContent += `<br/>Salary : {{Salary}}`;
+    // modifiedContent += `<br/>Work_address : {{Work_address}}`;
+    // modifiedContent += `<br/>client : {{client}}`;      
+    // setContent(modifiedContent);
+
+  } catch (error) {
+    console.log('Error fetching employee list:', error);
   }
 
-  // คืนค่าเริ่มต้นหากไม่มีข้อมูลที่สอดคล้องกับแท็กตัวแปร
-  return "";
+};
+
+const generateContract = async () => {
+  try {
+    const response = await fetch(`https://jingjo-backend-customer.vercel.app/employee/${selectedEmployee}`);
+    const data = await response.json();
+    // replace data to content 
+    let modifiedContent = content.replace('{{fullNameEng}}', data.fullNameEng);
+    modifiedContent = modifiedContent.replace('{{currentAddress}}', data.currentAddress);
+    modifiedContent = modifiedContent.replace('{{personal_id}}', data.personal_id);
+    modifiedContent = modifiedContent.replace('{{Positon}}', data.Positon);
+    modifiedContent = modifiedContent.replace('{{Agreement_expiration_period}}', data.Agreement_expiration_period);
+    modifiedContent = modifiedContent.replace('{{Contract_Consultant_Name}}', data.Contract_Consultant_Name);
+    modifiedContent = modifiedContent.replace('{{Contract_Duration}}', data.Contract_Duration);
+    modifiedContent = modifiedContent.replace('{{Leave_eligibility}}', data.Leave_eligibility);
+    modifiedContent = modifiedContent.replace('{{Salary}}', data.Salary);
+    modifiedContent = modifiedContent.replace('{{Work_address}}', data.Work_address);
+    modifiedContent = modifiedContent.replace('{{client}}', data.client);
+    modifiedContent = modifiedContent.replace('{{email}}', data.email);
+    setContent(modifiedContent);
+
+  } catch (error) {
+    console.log('Error fetching employee list:', error);
+  }
+
+  try {
+    const response = await fetch('https://jingjo-backend-customer.vercel.app/generate_contract', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ selected_employee: selectedEmployee }),
+    });
+    const downloadLink = await response.json();
+    setDownloadLink(downloadLink);
+
+    // setContent(modifiedContent);
+  } catch (error) {
+    console.log('Error generating contract:', error);
+  }
 };
 
 
@@ -445,26 +462,11 @@ const getDataForVariable = (variable) => {
 
 
 // สร้างเอกสารด้วยtemplate
-const [employeeList, setEmployeeList] = useState([]);
-  const [selectedEmployee, setSelectedEmployee] = useState('');
   const [message, setMessage] = useState('');
 
   useEffect(() => {
     fetchEmployeeList();
   }, []);
-
-  const fetchEmployeeList = async () => {
-    try {
-      const response = await axios.get('https://jingjo-backend-customer.vercel.app/employee_list');
-      setEmployeeList(response.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const handleEmployeeChange = (e) => {
-    setSelectedEmployee(e.target.value);
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -511,10 +513,6 @@ const [employeeList, setEmployeeList] = useState([]);
              {/* import file */}
             <input className="custom-file-input" type="file"  accept="application/pdf" onChange={handleFileChange}/> 
              {/* import file */}
-             
-            
-              
-             
             </div>
           </div>
         </div>
@@ -565,28 +563,35 @@ const [employeeList, setEmployeeList] = useState([]);
      
       <div className="create_doc">
       <form onSubmit={handleSubmit}>
-        <p htmlFor="selected_employee" className="Create_contract">Create contract from template</p>
-        <select
-          id="selected_employee"
-          value={selectedEmployee}
-          onChange={handleEmployeeChange}
-          required
-        >
-          <option value="">เลือก</option>
-          {employeeList.map((employee, index) => (
-            <option key={index} value={employee.employee_ID}>
-              {employee.fullNameEng}
-            </option>
-          ))}
-        </select>
+        
         <button type="submit">create contract</button>
       </form>
       {/* <p className="message">{message}</p> */}
       </div>
       <hr />
-<button className="showdata" onClick={handleSave}>
-  <span  role="img" aria-label="data-icon">📊</span> แสดงข้อมูล
-</button>
+
+  <div className="box_selected_employee">
+  <select
+    id="selected_employee"
+    value={selectedEmployee}
+    onChange={handleEmployeeChange}
+    required
+    className="select-stylish"
+  >
+    <option value="">Select Employee</option>
+    {employeeList.map((employee, index) => (
+      <option key={index} value={employee.employee_ID}>
+        {employee.fullNameEng}
+      </option>
+    ))}
+  </select>
+  <hr />
+  <hr />
+  <button className="showdata" onClick={generateContract}>
+    <p role="img" aria-label="data-icon">📊</p> แสดงข้อมูล
+  </button>
+</div>
+
                 <button onClick={generatePdf} className="frame-57">
             <div className="frame-56">
               <img
@@ -771,6 +776,7 @@ const [employeeList, setEmployeeList] = useState([]);
           />
         )}
       />
+
     </div>
           {/*  */}
 
